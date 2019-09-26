@@ -20,11 +20,14 @@ function post(url, data){
 
 // ----- CONSTANTS ----- //
 const createMonster = document.querySelector('#create-monster')
+const newMonster = document.querySelector("#new-monster")
+newMonster.style.display = "hidden"
 const monsterContainer = document.querySelector('#monster-container')
 const forwardBtn = document.querySelector('#forward')
 const backBtn = document.querySelector('#back')  
-forwardBtn.dataset.id = 1
-backBtn.dataset.id = 1
+let pageNumber = 1
+// forwardBtn.dataset.id = 1
+// backBtn.dataset.id = 1
 
 // ----- FUNCTIONS ----- //
 
@@ -63,10 +66,12 @@ function createForm(){
 
 // monsters //
 function getMonsters(url, limit, page){
-    API.get(url, limit, page).then(monsterList => monsterList.forEach(renderMonsters))
+    API.get(url, limit, page).then(monsterList => monsterList.forEach(monster => {
+        monsterContainer.append(renderMonster(monster))
+    }))
 }
 
-function renderMonsters(monster){
+function renderMonster(monster){
         // clear previous render
         while (monsterContainer.childElementCount > 49) {
             monsterContainer.removeChild(monsterContainer.firstChild)
@@ -85,31 +90,39 @@ function renderMonsters(monster){
         description.innerText = `Description: ${monster.description}`
         //append
         div.append(h2, age, description)
-        monsterContainer.append(div)   
+        return div  
 }
 
 // ----- page handler ----- //
-forwardBtn.addEventListener('click', () => handleClick(forwardBtn, 1))
-backBtn.addEventListener('click', () => handleClick(backBtn, -1))
+forwardBtn.addEventListener('click', handleClick)
+backBtn.addEventListener('click', handleClick)
 
-function handleClick(button, num){
+function handleClick(event){
     event.preventDefault()
-    if (button.dataset.id > 0 && button.dataset.id < 21) {
-        forwardBtn.dataset.id = parseInt(forwardBtn.dataset.id) + num
-        backBtn.dataset.id = parseInt(backBtn.dataset.id) + num
-        getMonsters(baseURL, 50, `${button.dataset.id}`)
+    if (event.target.innerText === "=>" && pageNumber < 21) {
+        pageNumber ++
+        getMonsters(baseURL, 50, pageNumber)
+    } else if (event.target.innerText === "<=" && pageNumber > 0) {
+        pageNumber --
+        getMonsters(baseURL, 50, pageNumber)
     }
 }
 
 // ----- create monsters ----- //
 function handleCreateClick(event) {
     event.preventDefault()
-    let newMonster = {
+    let monsterObject = {
         name: event.target['name'].value,
         age: event.target['age'].value,
         description: event.target['description'].value,
     }
-    API.post(baseURL, newMonster).then(monster => renderMonsterOnClient(monster))
+    API.post(baseURL, monsterObject).then(monster => {
+        while (newMonster.firstChild) {
+            newMonster.firstChild.remove()
+        }
+        newMonster.style.display = "block"
+        newMonster.append(renderMonster(monster))
+    })
 }
 
 function renderMonsterOnClient(monster) {
