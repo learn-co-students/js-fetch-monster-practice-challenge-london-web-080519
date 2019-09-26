@@ -89,7 +89,7 @@ function renderMonsters(monster) {
 
 // increment decrement page 
 
-forwardBtn.addEventListener("click", () => handleForwardBtnClick)
+forwardBtn.addEventListener("click", () => handleForwardBtnClick())
 
 function handleForwardBtnClick(){
     pageNum++
